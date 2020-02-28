@@ -5,6 +5,7 @@ ENPM6733Perception for Autonomous RobotsImage Processing and Computer Vision tec
 In this project we aim to do Traffic Sign Recognition. You will perform the two steps of detection and recognition.
 You can use existing OpenCV code (HOG feature detector, MSER feature detector, SVM routines) to create
 the complete pipeline. The challenge will be in tuning the system to detect well.
+
 The link of image data set is in the ENPM673_P6.pdf file. The project guideline is also in this file.
 
 Result
