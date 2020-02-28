@@ -10,3 +10,11 @@ The link of image data set is in the ENPM673_P6.pdf file. The project guideline 
 
 Result
 <img src= "Video_Results/detection.gif" width="1000" height="500" >
+
+### 2. Visual Odometry
+Visual Odometry is a crucial concept in Robotics Perception for estimating the trajectory of the robot (the
+camera on the robot to be precise). The concepts involved in Visual Odometry are quite the same for SLAM
+which needless to say is an integral part of Perception.
+In this project you are given frames of a driving sequence taken by a camera in a car, and the scripts
+to extract the intrinsic parameters. Your will implement the different steps to estimate the 3D motion of the
+camera, and provide as output a plot of the trajectory of the camera
