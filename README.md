@@ -23,5 +23,5 @@ The link of image data set is in the ENPM673_P6.pdf file. The project guideline 
 
 Result (Note:Our own function took about 24hr to run.)
 
-The blue plot shows the build-in function and the orange line shows the output of our own function.
+The blue plot shows the build-in function and the red line shows the output of our own function.
 <img src= "Video_Results/Visual Odometry.gif" width="1000" height="500" >
