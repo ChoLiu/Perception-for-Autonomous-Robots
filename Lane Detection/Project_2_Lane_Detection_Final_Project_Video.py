@@ -215,106 +215,97 @@ line, = ax.plot(np.arange(720), np.zeros((720,1)), c='b', lw=1)
 plt.ion()
 plt.show()
 
-# try: 
-cap = cv2.VideoCapture('project_video.mp4')
-while(cap.isOpened()):
-    
-    ret, frame = cap.read()
-    ret, final_out = cap.read()
-   
-    H,H_reg = findH()
+try: 
+    cap = cv2.VideoCapture('project_video.mp4')
+    while(cap.isOpened()):
 
-    color_frame_dst,masked_top_zoomed,masked_top = processimage(frame)
-    Unwarped_frame_zoom = cv2.warpPerspective(frame, H, (720, 800))
-    Unwarped_frame = cv2.warpPerspective(frame, H_reg, (720, 800))
-    cv2.imshow('reg',Unwarped_frame)
-    cv2.imshow('zoom',Unwarped_frame_zoom)
-    
-    Road_pt = [(600,450),(685,450),(320,675),(1090,675)]#Source coordinates
-    Ref_pt = [(100,0),(500,0),(100,720),(500,720)]#destination coordinates
-    curve_pt = [(0,0),(800,0),(800,720),(0,720)]
-    
-    M = cv2.getPerspectiveTransform(np.float32(Ref_pt), np.float32(Road_pt))
-    
-    _,_,left_fitx,right_fitx,color_warp,plot_x,leftx,lefty,rightx,righty = fit_polyline(masked_top_zoomed)
-    left_fitx1,right_fitx1,color_warp1,plot_x,leftx1,lefty1,rightx1,righty1= fit_polyline1(masked_top)
+        ret, frame = cap.read()
+        ret, final_out = cap.read()
 
-  
-    pts_left = np.array([np.transpose(np.vstack([left_fitx, plot_x]))])
-    pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, plot_x])))])
-    # Generate the pixces witin the curves
-    pts = np.hstack((pts_left, pts_right))
-   
+        H,H_reg = findH()
 
-    pts_left1 = np.array([np.transpose(np.vstack([left_fitx1, plot_x]))])
-    pts_right1 = np.array([np.flipud(np.transpose(np.vstack([right_fitx1, plot_x])))])
+        color_frame_dst,masked_top_zoomed,masked_top = processimage(frame)
+        Unwarped_frame_zoom = cv2.warpPerspective(frame, H, (720, 800))
+        Unwarped_frame = cv2.warpPerspective(frame, H_reg, (720, 800))
+        cv2.imshow('reg',Unwarped_frame)
+        cv2.imshow('zoom',Unwarped_frame_zoom)
 
-    pts1 = np.hstack((pts_left1, pts_right1))
-    
-    #live histogram
-    gray = cv2.cvtColor(masked_top_zoomed, cv2.COLOR_BGR2GRAY)
-    histogram = np.sum(gray[gray.shape[0]//2:,:], axis=0)
-    line.set_ydata(histogram//100)
-    fig.canvas.draw()
+        Road_pt = [(600,450),(685,450),(320,675),(1090,675)]#Source coordinates
+        Ref_pt = [(100,0),(500,0),(100,720),(500,720)]#destination coordinates
+        curve_pt = [(0,0),(800,0),(800,720),(0,720)]
 
-    #Plot line fit
-    color_countours = np.zeros((800,720,3),np.uint8)
-    color_countours1 = np.zeros((800,720,3),np.uint8)
-    
-    color_countours = cv2.drawContours(color_countours, np.int_([pts]), -1, (255, 255, 0), 15)
-    # color_countours_reg = cv2.drawContours(color_countours1, np.int_([pts1]), -1, (255, 255, 0), 15)#Just for curvature calculation
-    #Plot front area within fitted area
-    cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 255))
-    #Convert topview to video 
-    newwarp = cv2.warpPerspective(color_warp, M,(1280,720))
-    newwarp_countours=cv2.warpPerspective(color_countours, M,(1280,720))
-   
-    result  = cv2.addWeighted(final_out, 1, newwarp_countours, 0.6, 0)
-    result = cv2.addWeighted(result, 1, newwarp, 0.3, 0)
-    # result_reg =cv2.addWeighted(masked_top, 1, color_countours_reg, 0.6, 0)
+        M = cv2.getPerspectiveTransform(np.float32(Ref_pt), np.float32(Road_pt))
 
-    masked_top= cv2.resize(masked_top, (0, 0),fx=1,fy=1)
-    result = cv2.resize(result, (0, 0),fx=1,fy=1)
-    frame = cv2.resize(frame, (0, 0),fx=1,fy=1)
-    Unwarped_frame = cv2.resize(Unwarped_frame, (0, 0),fx=1,fy=1)
+        _,_,left_fitx,right_fitx,color_warp,plot_x,leftx,lefty,rightx,righty = fit_polyline(masked_top_zoomed)
+        left_fitx1,right_fitx1,color_warp1,plot_x,leftx1,lefty1,rightx1,righty1= fit_polyline1(masked_top)
 
-    # Calculate radius of curvature 
-    x_pix_meters = 3.7/80 #3.7m/80 pixels
-   
-
-    left_fit1 = np.polyfit(lefty1, leftx1, 2)
-    # left lane 
-    L_x_eval = 720
-    L_first_derv = 2*left_fit1[0]*L_x_eval+left_fit1[1]
-    
-    L_second_derv = 2*left_fit1[0]
-    #print(L_second_derv)
-    L_curvature = (((1+(L_first_derv)**2))**1.5)/np.absolute(L_second_derv)
-    L = (((1+(L_first_derv)**2))**1.5)/(L_second_derv)
-   
-    L_curve_radius_m = L_curvature*x_pix_meters
- 
-    if L_curve_radius_m > 1500:
-        cv2.putText(result, "Straight" ,(10, 100),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
-
-    if L_curve_radius_m < 1000 and L < 0:
-        cv2.putText(result, "Turning Left" ,(10, 100),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
-
-    if L_curve_radius_m < 1300 and L > 0:
-        cv2.putText(result, "Turning Right" ,(10, 100),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
-    
-    # Display radius on frame
+        pts_left = np.array([np.transpose(np.vstack([left_fitx, plot_x]))])
+        pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, plot_x])))])
         
-    # Display radius on frame
-    cv2.putText(result, "Radius = %s m" %L_curve_radius_m,(10, 50),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
-   
+        # Generate the pixces witin the curves
+        pts = np.hstack((pts_left, pts_right))
+        pts_left1 = np.array([np.transpose(np.vstack([left_fitx1, plot_x]))])
+        pts_right1 = np.array([np.flipud(np.transpose(np.vstack([right_fitx1, plot_x])))])
 
-    cv2.imshow('Final out put',result )
-    
+        pts1 = np.hstack((pts_left1, pts_right1))
 
-    if cv2.waitKey(1) & 0xFF == ord('q'): 
-        break
-cap.release()
-cv2.destroyAllWindows()
-# except:
-#     print("Video Complete")
+        #live histogram
+        gray = cv2.cvtColor(masked_top_zoomed, cv2.COLOR_BGR2GRAY)
+        histogram = np.sum(gray[gray.shape[0]//2:,:], axis=0)
+        line.set_ydata(histogram//100)
+        fig.canvas.draw()
+
+        #Plot line fit
+        color_countours = np.zeros((800,720,3),np.uint8)
+        color_countours1 = np.zeros((800,720,3),np.uint8)
+
+        color_countours = cv2.drawContours(color_countours, np.int_([pts]), -1, (255, 255, 0), 15)
+        # color_countours_reg = cv2.drawContours(color_countours1, np.int_([pts1]), -1, (255, 255, 0), 15)#Just for curvature calculation
+        #Plot front area within fitted area
+        cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 255))
+        
+        #Convert topview to video 
+        newwarp = cv2.warpPerspective(color_warp, M,(1280,720))
+        newwarp_countours=cv2.warpPerspective(color_countours, M,(1280,720))
+
+        result  = cv2.addWeighted(final_out, 1, newwarp_countours, 0.6, 0)
+        result = cv2.addWeighted(result, 1, newwarp, 0.3, 0)
+        
+        # result_reg =cv2.addWeighted(masked_top, 1, color_countours_reg, 0.6, 0)
+        masked_top= cv2.resize(masked_top, (0, 0),fx=1,fy=1)
+        result = cv2.resize(result, (0, 0),fx=1,fy=1)
+        frame = cv2.resize(frame, (0, 0),fx=1,fy=1)
+        Unwarped_frame = cv2.resize(Unwarped_frame, (0, 0),fx=1,fy=1)
+
+        # Calculate radius of curvature 
+        x_pix_meters = 3.7/80 #3.7m/80 pixels
+        left_fit1 = np.polyfit(lefty1, leftx1, 2)
+        # left lane 
+        L_x_eval = 720
+        L_first_derv = 2*left_fit1[0]*L_x_eval+left_fit1[1]
+        L_second_derv = 2*left_fit1[0] 
+        L_curvature = (((1+(L_first_derv)**2))**1.5)/np.absolute(L_second_derv)
+        L = (((1+(L_first_derv)**2))**1.5)/(L_second_derv)
+        L_curve_radius_m = L_curvature*x_pix_meters
+
+        if L_curve_radius_m > 1500:
+            cv2.putText(result, "Straight" ,(10, 100),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
+
+        if L_curve_radius_m < 1000 and L < 0:
+            cv2.putText(result, "Turning Left" ,(10, 100),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
+
+        if L_curve_radius_m < 1300 and L > 0:
+            cv2.putText(result, "Turning Right" ,(10, 100),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
+
+        # Display radius on frame
+        cv2.putText(result, "Radius = %s m" %L_curve_radius_m,(10, 50),cv2.FONT_HERSHEY_SIMPLEX ,2,(225,255,0),2)
+
+        cv2.imshow('Final out put',result )
+
+        if cv2.waitKey(1) & 0xFF == ord('q'): 
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+except:
+    print("Video Complete")
