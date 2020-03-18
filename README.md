@@ -25,3 +25,14 @@ Result (Note:Our own function took about 24hr to run.)
 
 The blue plot shows the build-in function and the red line shows the output of our own function.
 <img src= "Video_Results/Visual Odometry.gif" width="1000" height="500" >
+
+### 3. Lane Detection [Github Link](https://github.com/ChoLiu/Perception-for-Autonomous-Robots/tree/master/Lane%20Detectiony)
+In this project we aim to do simple Lane Detection to mimic Lane Departure Warning systems used in Self
+Driving Cars. You are provided with two video sequences (both are required for this assignment), taken from a
+self driving car (click here to download). Your task will be to design an algorithm to detect lanes on the road,
+as well as estimate the road curvature to predict car turns.
+
+The link of video input is in the ENPM673_P2.pdf file. The project guideline is also in this file.
+
+Result<img src= "Video_Results/Lane_Detection.gif" width="1000" height="500">
+
